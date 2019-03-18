@@ -9,6 +9,8 @@ import sys
 sys.path.insert(0, './')
 from gem.utils import embed_util
 
+def test():
+    print('test!')
 
 def evaluateStaticLinkPrediction(digraph, graph_embedding,
                                  train_ratio=0.8,
@@ -17,12 +19,16 @@ def evaluateStaticLinkPrediction(digraph, graph_embedding,
                                  no_python=False,
                                  is_undirected=True):
     node_num = digraph.number_of_nodes()
+    print('eslp graph')
+    print(digraph.edges()[:3])
     # seperate train and test graph
     train_digraph, test_digraph = evaluation_util.splitDiGraphToTrainTest(
         digraph,
         train_ratio=train_ratio,
         is_undirected=is_undirected
     )
+    print('eslp training graph')
+    print(train_digraph.edges()[:3])
     if not nx.is_connected(train_digraph.to_undirected()):
         train_digraph = max(
             nx.weakly_connected_component_subgraphs(train_digraph),
@@ -30,10 +36,16 @@ def evaluateStaticLinkPrediction(digraph, graph_embedding,
         )
         tdl_nodes = train_digraph.nodes()
         nodeListMap = dict(zip(tdl_nodes, range(len(tdl_nodes))))
+        reversedNodeListMap = dict(zip(range(len(tdl_nodes)),tdl_nodes))
+        print(nodeListMap)
         nx.relabel_nodes(train_digraph, nodeListMap, copy=False)
         test_digraph = test_digraph.subgraph(tdl_nodes)
         nx.relabel_nodes(test_digraph, nodeListMap, copy=False)
+    else:
+        reversedNodeListMap = dict(zip(tdl_nodes,tdl_nodes))
 
+    print('elsp training graph after largest cc')
+    print(train_digraph.edges()[:3])
     # learning graph embedding
     X, _ = graph_embedding.learn_embedding(
         graph=train_digraph,
@@ -47,6 +59,15 @@ def evaluateStaticLinkPrediction(digraph, graph_embedding,
         )
         X = X[node_l]
 
+    # print('len graph edges')
+    # print(len(graph.nodes()))
+    # print('embedding vectors number')
+    # print(len(self._X))
+    node2vec_dict = {}
+    print('GUESS embedding node2vc train result')
+    for i in range(len(X)):
+        node2vec_dict[reversedNodeListMap[train_digraph.nodes()[i]]] = X[i]
+        # print(str(train_digraph.nodes()[i])+" "+str(reversedNodeListMap[train_digraph.nodes()[i]]) + " "+ str(X[i]))
     # evaluation
     if sample_ratio_e:
         eval_edge_pairs = evaluation_util.getRandomEdgePairs(
@@ -63,15 +84,14 @@ def evaluateStaticLinkPrediction(digraph, graph_embedding,
         edge_pairs=eval_edge_pairs
     )
     if node_l is None:
-        node_l = list(range(train_digraph.number_of_nodes())
-    filtered_edge_list = [e for e in predicted_edge_list if not train_digraph.has_edge(node_l(e[0]), node_l(e[1]))]
-
+        node_l = list(range(train_digraph.number_of_nodes()))
+    filtered_edge_list = [e for e in predicted_edge_list if not train_digraph.has_edge(node_l[e[0]], node_l[e[1]])]
     MAP = metrics.computeMAP(filtered_edge_list, test_digraph)
     prec_curv, _ = metrics.computePrecisionCurve(
         filtered_edge_list,
         test_digraph
     )
-    return (MAP, prec_curv)
+    return (MAP, prec_curv, node2vec_dict)
 
 
 def expLP(digraph, graph_embedding,

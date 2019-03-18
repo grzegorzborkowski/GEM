@@ -60,8 +60,11 @@ class node2vec(StaticGraphEmbedding):
         args = ["node2vec"]
         if not graph and not edge_f:
             raise Exception('graph/edge_f needed')
-        if edge_f:
-            graph = graph_util.loadGraphFromEdgeListTxt(edge_f)
+        if graph is None:
+            graph = graph_util.loadGraphFromEdgeListTxt(edge_f, directed=True)
+        print ("node2vec graph")
+        print (graph.edges()[:3])
+        # print(graph)
         graph_util.saveGraphToEdgeListTxtn2v(graph, 'tempGraph.graph')
         args.append("-i:tempGraph.graph")
         args.append("-o:tempGraph.emb")
@@ -83,6 +86,14 @@ class node2vec(StaticGraphEmbedding):
             raise Exception('./node2vec not found. Please compile snap, place node2vec in the system path and grant executable permission')
         self._X = graph_util.loadEmbedding('tempGraph.emb')
         t2 = time()
+        print('len graph edges')
+        print(len(graph.nodes()))
+        print('embedding vectors number')
+        print(len(self._X))
+        print('GUESS embedding node2vc')
+        for i in range(len(self._X)):
+            print(str(graph.nodes()[i])+" "+str(self._X[i]))
+        # print (self._X)
         return self._X, (t2 - t1)
 
     def get_embedding(self):

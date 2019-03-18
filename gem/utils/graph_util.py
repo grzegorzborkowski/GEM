@@ -157,6 +157,8 @@ def loadGraphFromEdgeListTxt(file_name, directed=True):
             else:
                 w = 1.0
             G.add_edge(int(edge[0]), int(edge[1]), weight=w)
+    print('utils graph')
+    print(G)
     return G
 
 

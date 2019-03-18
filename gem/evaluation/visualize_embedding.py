@@ -6,6 +6,8 @@ import sys
 sys.path.insert(0, './')
 from gem.utils import plot_util
 
+def test():
+    print('viz test')
 
 def plot_embedding2D(node_pos, node_colors=None, di_graph=None, labels=None):
     node_num, embedding_dimension = node_pos.shape
