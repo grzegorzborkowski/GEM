@@ -58,15 +58,6 @@ def evaluateStaticLinkPrediction(digraph, graph_embedding,
         )
         X = X[node_l]
 
-    # print('len graph edges')
-    # print(len(graph.nodes()))
-    # print('embedding vectors number')
-    # print(len(self._X))
-    node2vec_dict = {}
-    print('GUESS embedding node2vc train result')
-    for i in range(len(X)):
-        node2vec_dict[reversedNodeListMap[train_digraph.nodes()[i]]] = X[i]
-        # print(str(train_digraph.nodes()[i])+" "+str(reversedNodeListMap[train_digraph.nodes()[i]]) + " "+ str(X[i]))
     # evaluation
     if sample_ratio_e:
         eval_edge_pairs = evaluation_util.getRandomEdgePairs(
@@ -85,12 +76,13 @@ def evaluateStaticLinkPrediction(digraph, graph_embedding,
     if node_l is None:
         node_l = list(range(train_digraph.number_of_nodes()))
     filtered_edge_list = [e for e in predicted_edge_list if not train_digraph.has_edge(node_l[e[0]], node_l[e[1]])]
+
     MAP = metrics.computeMAP(filtered_edge_list, test_digraph)
     prec_curv, _ = metrics.computePrecisionCurve(
         filtered_edge_list,
         test_digraph
     )
-    return (MAP, prec_curv, node2vec_dict)
+    return (MAP, prec_curv)
 
 
 def expLP(digraph, graph_embedding,

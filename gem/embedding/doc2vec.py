@@ -40,11 +40,11 @@ class doc2vec(StaticGraphEmbedding):
 
         articles = self._articles
         for article in articles:
-            # if int(article['index_mapped']) in graph:
-            abstract = article['abstract']
-            docs.append(TaggedDocument(words=abstract, tags=[int(article['index_mapped'])]))
-            idx_indexes[current_idx] = int(article['index_mapped'])
-            current_idx += 1
+            if int(article['index_mapped']) in graph:
+                abstract = article['abstract']
+                docs.append(TaggedDocument(words=abstract, tags=[int(article['index_mapped'])]))
+                idx_indexes[current_idx] = int(article['index_mapped'])
+                current_idx += 1
 
         vector_size = 2
         model = gensim.models.doc2vec.Doc2Vec(vector_size=vector_size, min_count=2, epochs=40)
