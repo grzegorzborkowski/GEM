@@ -21,9 +21,10 @@ from gem.embedding.node2vec import node2vec
 from gem.embedding.sdne     import SDNE
 from argparse import ArgumentParser
 
-from gem.embedding.node2vec import node2vec
-from gem.embedding.doc2vec  import doc2vec
-from gem.DBLP.DBLP          import DBLP
+from gem.embedding.node2vec             import node2vec
+from gem.embedding.doc2vec              import doc2vec
+from gem.embedding.doc2vec_node2vec     import doc2vec_node2vec
+from gem.DBLP.DBLP                      import DBLP
 
 
 if __name__ == '__main__':
@@ -35,6 +36,8 @@ if __name__ == '__main__':
                         help='whether to run node2vec (default: False)')
     parser.add_argument('-doc2vec', '--doc2vec',
                         help='whether to run doc2vec (default: False)')
+    parser.add_argument('-doc2vec_node2vec', '--doc2vec_node2vec',
+                        help='whether to run doc2vec_node2vec (default: False)')
     parser.add_argument('-reload', '--reload',
                         help='whether to recreate DBLP articles and external graph (default: False)')
     args = vars(parser.parse_args())
@@ -46,6 +49,10 @@ if __name__ == '__main__':
         run_d2v = bool(int(args["doc2vec"]))
     except:
         run_d2v = False
+    try:
+        run_d2v_n2v = bool(int(args["doc2vec_node2vec"]))
+    except:
+        run_d2v_n2v = False
     try:
         reload = bool(int(args["reload"]))
     except:
@@ -80,6 +87,8 @@ if __name__ == '__main__':
     # models.append(HOPE(d=4, beta=0.01))
     # models.append(LaplacianEigenmaps(d=2))
     # models.append(LocallyLinearEmbedding(d=2))
+    if run_d2v_n2v:
+        models.append(doc2vec_node2vec(articles=articles, graph=G))
     if run_d2v:
         models.append(doc2vec(articles=articles))
     if run_n2v:
@@ -96,10 +105,11 @@ if __name__ == '__main__':
         print('\nProcessing: ' + str(embedding._method_name))
         print('Num articles: %d. Num nodes: %d, num edges: %d' % \
          (len(articles), G.number_of_nodes(), G.number_of_edges()))
+        t1 = time()
         # Learn embedding - accepts a networkx graph or file with edge list
         matrix, t = embedding.learn_embedding(graph=G)
+        # print(matrix)
         print(embedding._method_name + ' size of embedding matrix: ' + str(len(matrix)))
-        t1 = time()
         # viz.plot_embedding2D(embedding.get_embedding(), di_graph=G, node_colors=None)
         # plt.show()
         # plt.clf()
