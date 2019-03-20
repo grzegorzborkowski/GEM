@@ -13,6 +13,7 @@ import scipy.io as sio
 import scipy.sparse as sp
 import scipy.sparse.linalg as lg
 from time import time
+import collections
 
 import sys
 sys.path.append('./')
@@ -57,13 +58,23 @@ class node2vec(StaticGraphEmbedding):
 
     def learn_embedding(self, graph=None, edge_f=None,
                         is_weighted=False, no_python=False):
+
+        tdl_nodes = list(graph.nodes())
+        tdl_nodes.sort()
+        nodeListMap = dict(zip(tdl_nodes, range(len(tdl_nodes))))
+        nx.relabel_nodes(graph, nodeListMap, copy=False)
+        print("nodes in node2vec " + str(len(graph.nodes())))
+        embedding, time = self.__learn_embedding__(graph=graph, edge_f=edge_f,
+                            is_weighted=is_weighted, no_python=no_python)
+        return embedding, time
+
+    def __learn_embedding__(self, graph=None, edge_f=None,
+                        is_weighted=False, no_python=False):
         args = ["node2vec"]
         if not graph and not edge_f:
             raise Exception('graph/edge_f needed')
         if graph is None:
             graph = graph_util.loadGraphFromEdgeListTxt(edge_f, directed=True)
-        print ("node2vec graph")
-        print (graph.edges()[:3])
         # print(graph)
         graph_util.saveGraphToEdgeListTxtn2v(graph, 'tempGraph.graph')
         args.append("-i:tempGraph.graph")
@@ -86,14 +97,7 @@ class node2vec(StaticGraphEmbedding):
             raise Exception('./node2vec not found. Please compile snap, place node2vec in the system path and grant executable permission')
         self._X = graph_util.loadEmbedding('tempGraph.emb')
         t2 = time()
-        print('len graph edges')
-        print(len(graph.nodes()))
-        print('embedding vectors number')
-        print(len(self._X))
-        print('GUESS embedding node2vc')
-        for i in range(len(self._X)):
-            print(str(graph.nodes()[i])+" "+str(self._X[i]))
-        # print (self._X)
+        print(type(self._X))
         return self._X, (t2 - t1)
 
     def get_embedding(self):

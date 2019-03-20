@@ -19,7 +19,10 @@ from gem.embedding.node2vec import node2vec
 from gem.embedding.sdne     import SDNE
 from argparse import ArgumentParser
 
-from gem.DBLP.doc2vec       import doc2vec
+from gem.embedding.node2vec import node2vec
+from gem.embedding.doc2vec  import doc2vec
+from gem.DBLP.DBLP          import DBLP
+
 
 if __name__ == '__main__':
     ''' Sample usage
@@ -41,15 +44,20 @@ if __name__ == '__main__':
     # Specify whether the edges are directed
     isDirected = True
 
-    # Load graph
-    G = graph_util.loadGraphFromEdgeListTxt(edge_f, directed=isDirected)
+    dblp = DBLP(100, 1, 10, 3, True)
+    articles = dblp.read_and_filter_dataset(filterAbstract=False)
+    dblp.__prepare_external_graph__(articles)
+    G = graph_util.loadGraphFromEdgeListTxt(edge_f, directed=True)
     G = G.to_directed()
-    print('run_karate graph')
-    print(G.edges()[:3])
+    print('run_karate graph nodes')
+    print(len(G.nodes()))
 
-
+    # doc2vec = doc2vec()
+    # doc2vec_matrix = doc2vec.learn_embedding(graph=G)
+    # print(doc2vec.get_method_name() + " size of embedding matrix: " + str(len(doc2vec_matrix)))
 
     models = []
+    models.append(doc2vec())
     # Load the models you want to run
     # models.append(GraphFactorization(d=2, max_iter=50000, eta=1 * 10**-4, regu=1.0))
     # models.append(HOPE(d=4, beta=0.01))
@@ -64,18 +72,14 @@ if __name__ == '__main__':
                     # modelfile=['enc_model.json', 'dec_model.json'],
                     # weightfile=['enc_weights.hdf5', 'dec_weights.hdf5']))
 
-    node_method_embedding_dict = {}
-
-    doc2vec_model = doc2vec()
-    doc2vec_dict = doc2vec_model.learn_embedding()
-
-    for article_id, vector in doc2vec_dict.items():
-        node_method_embedding_dict[article_id] = {}
-        node_method_embedding_dict[article_id][doc2vec_model.get_method_name()] = vector
-
     # For each model, learn the embedding and evaluate on graph reconstruction and visualization
     for embedding in models:
         print ('Num nodes: %d, num edges: %d' % (G.number_of_nodes(), G.number_of_edges()))
+        matrix = embedding.learn_embedding(graph=G)
+        # viz.plot_embedding2D(embedding.get_embedding(), di_graph=G, node_colors=None)
+        # plt.show()
+        # plt.clf()
+        # print(embedding._method_name + " size of embedding matrix: " + str(len(node2vec_matrix)))
         t1 = time()
         # Learn embedding - accepts a networkx graph or file with edge list
         # print (embedding._method_name+':\n\tTraining time: %f' % (time() - t1))
@@ -92,13 +96,3 @@ if __name__ == '__main__':
         MAP, prec_curv, embedding_dict = lp.evaluateStaticLinkPrediction(G, embedding, is_undirected=False)
         print (embedding._method_name+':\n\tTraining time: %f' % (time() - t1))
         print(("\tMAP: {} \t preccision curve: {}\n\n\n\n"+'-'*100).format(MAP,prec_curv[:5]))
-        print('embedding result per node')
-        # print(embedding_dict)
-
-        for article_id, vector in embedding_dict.items():
-            node_method_embedding_dict[article_id][embedding._method_name] = vector
-
-    for node, method_embedding in node_method_embedding_dict.items():
-        print(str(node))
-        for method, embedding in method_embedding.items():
-            print("      " + str(method) + " " + str(embedding))

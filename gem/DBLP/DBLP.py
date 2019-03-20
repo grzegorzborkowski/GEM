@@ -8,6 +8,7 @@ import argparse
 import os
 import tqdm
 
+
 class DBLP():
 
     DEBUG = True
@@ -47,7 +48,7 @@ class DBLP():
 
         if DBLP.DEBUG: print("[DBLP-Pipeline] Removing non-existing artciles from quoted-by filed in articles")
         articles_with_updated_quoted_by = self.__update_quoted_by__(articles_with_top_authors_only)
-        
+
         if filterAbstract:
             if DBLP.DEBUG: print("[DBLP-Pipeline] Calculating words frequency")
             top_words = self.__calculate_frequency_of_words__(articles_with_updated_quoted_by)
@@ -73,6 +74,10 @@ class DBLP():
         articles_with_updated_quoted_by = self.__update_quoted_by__(articles_with_sufficient_edges)
         self.summary['articles_count'] = len(articles_with_updated_quoted_by)
 
+        # if DBLP.DEBUG: print("[DBLP-Pipeline] Removing articles with no quoted-by")
+        # articles_with_positive_quoted_by = self.__remove_articles_with_no_quoted_by__(articles_with_updated_quoted_by)
+        # self.summary['articles_count'] = len(articles_with_positive_quoted_by)
+
         return articles_with_updated_quoted_by
 
     def prepare_graph_of_graphs_from_articles(self, articles):
@@ -82,13 +87,12 @@ class DBLP():
     def __prepare_external_graph__(self, articles):
         if DBLP.DEBUG: print("[DBLP-Pipeline] Writing an external graph content to file")
         with open("external_graph.csv", 'w') as file:
-            print (len(articles))
             for article in tqdm.tqdm(articles):
                 # print ("XD")
                 for quoted_article in article['quoted']:
                     # print ("writing xD")
                     file.write(str(article['index_mapped']) + " " + str(quoted_article) + "\n")
-               
+
     def __prepare_internal_graph__(self, articles):
         if DBLP.DEBUG: print("[DBLP-Pipeline] Writing an internal graph content to files")
         dictionary_of_words_mapping = self.__get_word_mapping_dictionary(articles)
@@ -349,6 +353,12 @@ class DBLP():
         # print('Quotations of remaining articles ' + str(new))
         # print('Qotations of removed articles ' + str(previous-new))
         return articles_copy
+
+    def __remove_articles_with_no_quoted_by__(self, articles):
+        a = len(articles)
+        articles = [article for article in articles if len(article['quoted'])>0]
+        print(a-len(articles))
+        return articles
 
     def __merge_article_abstract_and_title_authors__(self, articles):
         articles_copy = copy.deepcopy(articles)
