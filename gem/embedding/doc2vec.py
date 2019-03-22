@@ -9,6 +9,8 @@ from gem.utils import graph_util
 from .static_graph_embedding import StaticGraphEmbedding
 import numpy as np
 from time import time
+import networkx as nx
+
 
 class doc2vec(StaticGraphEmbedding):
     def __init__(self, *hyper_dict, **kwargs):
@@ -29,9 +31,14 @@ class doc2vec(StaticGraphEmbedding):
         return '%s_%d' % (self._method_name, self._d)
 
     def learn_embedding(self, graph=None, edge_f=None,
-                        is_weighted=False, no_python=False):
+                        is_weighted=False, no_python=False, resampling_reversed_map=None):
         # dblp = DBLP(100, 1, 10, 3, True)
         # articles = dblp.read_and_filter_dataset(filterAbstract=False)
+
+        if resampling_reversed_map is not None:
+            nx.relabel_nodes(graph, resampling_reversed_map, copy=False)
+            # print('relabeling nodes in doc2vec')
+
         docs = []
         embeddings = []
         idx_indexes = {}
@@ -61,7 +68,7 @@ class doc2vec(StaticGraphEmbedding):
 
         embeddings = np.reshape(embeddings, (-1, vector_size))
         # print('doc2vec embeddings learned ' + str(len(embeddings)))
-        #print (embeddings)
+        print (embeddings)
         t2 = time()
         self._X = embeddings
         return self._X, t2-t1

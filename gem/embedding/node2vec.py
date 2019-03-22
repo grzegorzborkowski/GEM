@@ -97,7 +97,14 @@ class node2vec(StaticGraphEmbedding):
             raise Exception('./node2vec not found. Please compile snap, place node2vec in the system path and grant executable permission')
         self._X = graph_util.loadEmbedding('tempGraph.emb')
         t2 = time()
-        print(type(self._X))
+        x_min = 0
+        x_max = 0
+        for v in self._X:
+            for el in v:
+                x_min=min(x_min,el)
+                x_max=max(x_max,el)
+        print('MAX: ' + str(x_max))
+        print('MIN: ' + str(x_min))
         return self._X, (t2 - t1)
 
     def get_embedding(self):

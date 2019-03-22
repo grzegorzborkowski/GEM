@@ -15,7 +15,7 @@ from time import time
 class doc2vec_node2vec(StaticGraphEmbedding):
     def __init__(self, *hyper_dict, **kwargs):
         hyper_params = {
-            'method_name': 'node2vec_doc2vec'
+            'method_name': 'doc2vec_node2vec'
         }
         hyper_params.update(kwargs)
         for key in hyper_params.keys():
@@ -31,16 +31,21 @@ class doc2vec_node2vec(StaticGraphEmbedding):
         return '%s_%d' % (self._method_name, self._d)
 
     def learn_embedding(self, graph=None, edge_f=None,
-                        is_weighted=False, no_python=False):
+                        is_weighted=False, no_python=False, resampling_reversed_map=None):
         t1 = time()
 
         articles = self._articles
-        graph = self._graph
+        if graph is None:
+            graph = self._graph
+        n2v_params = self._n2v_params
 
         d2v = doc2vec(articles=articles)
-        n2v = node2vec(d=2, max_iter=1, walk_len=1, num_walks=1, con_size=1, ret_p=1, inout_p=1, edge_f=edge_f)
+        n2v = node2vec(d=n2v_params['d'], max_iter=n2v_params['max_iter'], \
+         walk_len=n2v_params['walk_len'], num_walks=n2v_params['num_walks'], \
+         con_size=n2v_params['con_size'], ret_p=n2v_params['ret_p'], \
+         inout_p=n2v_params['inout_p'], edge_f=n2v_params['edge_f'])
 
-        doc2vec_embedding, _ = d2v.learn_embedding(graph=graph)
+        doc2vec_embedding, _ = d2v.learn_embedding(graph=graph, resampling_reversed_map=resampling_reversed_map)
         node2vec_embedding, _ = n2v.learn_embedding(graph=graph)
 
         embeddings = []

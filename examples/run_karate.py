@@ -88,7 +88,8 @@ if __name__ == '__main__':
     # models.append(LaplacianEigenmaps(d=2))
     # models.append(LocallyLinearEmbedding(d=2))
     if run_d2v_n2v:
-        models.append(doc2vec_node2vec(articles=articles, graph=G))
+        n2v_params = {'d':2, 'max_iter':1, 'walk_len':1, 'num_walks':1, 'con_size':1, 'ret_p':1, 'inout_p':1, 'edge_f':edge_f}
+        models.append(doc2vec_node2vec(articles=articles, graph=G, n2v_params=n2v_params))
     if run_d2v:
         models.append(doc2vec(articles=articles))
     if run_n2v:
@@ -96,7 +97,7 @@ if __name__ == '__main__':
             node2vec(d=2, max_iter=1, walk_len=1, num_walks=1, con_size=1, ret_p=1, inout_p=1, edge_f=edge_f)
             # node2vec(d=2, max_iter=1, walk_len=80, num_walks=10, con_size=10, ret_p=1, inout_p=1, edge_f=edge_f)
         )
-    # models.append(SDNE(d=2, beta=5, alpha=1e-5, nu1=1e-6, nu2=1e-6, K=3,n_units=[50, 15,], rho=0.3, n_iter=50, xeta=0.01,n_batch=100,
+    # models.append(SDNE(d=2, beta=5, alpha=1e-5, nu1=1e-6, nu2=1e-6, K=3,n_units=[50, 15,], rho=0.3, n_iter=50, xeta=0.01,n_batch=100))
                     # modelfile=['enc_model.json', 'dec_model.json'],
                     # weightfile=['enc_weights.hdf5', 'dec_weights.hdf5']))
 
@@ -107,13 +108,13 @@ if __name__ == '__main__':
          (len(articles), G.number_of_nodes(), G.number_of_edges()))
         t1 = time()
         # Learn embedding - accepts a networkx graph or file with edge list
-        matrix, t = embedding.learn_embedding(graph=G)
+        # matrix, t = embedding.learn_embedding(graph=G)
         # print(matrix)
-        print(embedding._method_name + ' size of embedding matrix: ' + str(len(matrix)))
+        # print(embedding._method_name + ' size of embedding matrix: ' + str(len(matrix)))
         # viz.plot_embedding2D(embedding.get_embedding(), di_graph=G, node_colors=None)
         # plt.show()
         # plt.clf()
-        print (embedding._method_name+':\n\tTraining time: %f' % (time() - t1))
+        #print (embedding._method_name+':\n\tTraining time: %f' % (time() - t1))
         # Evaluate on graph reconstruction
         # MAP, prec_curv, err, err_baseline = gr.evaluateStaticGraphReconstruction(G, embedding, Y, None)
         # ---------------------------------------------------------------------------------
